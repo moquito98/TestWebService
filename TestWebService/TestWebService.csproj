@@ -15,5 +15,9 @@
   <ItemGroup>
     <None Remove="Dadata" />
     <None Remove="Newtonsoft.Json" />
+    <None Remove="Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Services\" />
   </ItemGroup>
 </Project>

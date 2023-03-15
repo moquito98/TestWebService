@@ -6,13 +6,12 @@ using Dadata;
 using Dadata.Model;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using TestWebService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 IServiceCollection services = builder.Services;
-services.AddHttpClient("foo");
 builder.Services.AddCors();
-
-builder.Services.AddHttpClient("GetAddress", httpClient =>
+builder.Services.AddHttpClient<IAddressService, AddressService>("GetAddress", httpClient =>
 {
     httpClient.BaseAddress = new Uri("https://cleaner.dadata.ru/api/v1/clean/address");
 
@@ -22,15 +21,18 @@ builder.Services.AddHttpClient("GetAddress", httpClient =>
         HeaderNames.Authorization, "Token " + builder.Configuration["token"]);
     httpClient.DefaultRequestHeaders.Add(
         "X-Secret", builder.Configuration["secret"]);
+    httpClient.DefaultRequestHeaders.Add(
+        "Content-Type", "application/json");
 });
 
+var configuration = builder.Configuration;
 var app = builder.Build();
+IServiceProvider serviceProvider = app.Services;
+var httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
 var logger = app.Logger;
 app.UseCors(builder => builder.AllowAnyOrigin());
 
 app.UseHttpsRedirection();
-
-IHttpClientFactory _httpClientFactory;
 
 
 
@@ -43,25 +45,9 @@ app.MapGet("/", async (context) =>
     }
     try
     {
-        string responseBody = "";
-        using (var httpClient = new HttpClient())
-        {
-            
-            using (var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://cleaner.dadata.ru/api/v1/clean/address"))
-            {
-                requestMessage.Headers.Add("Authorization", "Token " + builder.Configuration["token"]);
-                requestMessage.Headers.Add("X-Secret", builder.Configuration["secret"]);
-                requestMessage.Content = new StringContent(
-                    $"[\"{requestBody}\"]",
-                    Encoding.UTF8,
-                    "application/json");
-                HttpResponseMessage result = await httpClient.SendAsync(requestMessage);
-                Console.WriteLine(result.StatusCode);
-                responseBody = await result.Content.ReadAsStringAsync();
-                await context.Response.WriteAsync(responseBody);
-            }
-        }
+        string responseBody = new AddressService(httpClientFactory).GetClearAddressAsync(requestBody).Result;
         logger.LogInformation(String.Format("[Request]\n{0}\n[Response]\n{1}\n", requestBody, responseBody));
+        await context.Response.WriteAsync(responseBody);
     }
     catch(Exception ex)
     {
