@@ -1,11 +1,6 @@
-﻿using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
-using Dadata;
-using Dadata.Model;
 using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
 using TestWebService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,14 +10,13 @@ builder.Services.AddHttpClient<IAddressService, AddressService>("GetAddress", ht
 {
     httpClient.BaseAddress = new Uri("https://cleaner.dadata.ru/api/v1/clean/address");
 
-    // using Microsoft.Net.Http.Headers;
-    // The GitHub API requires two headers.
     httpClient.DefaultRequestHeaders.Add(
         HeaderNames.Authorization, "Token " + builder.Configuration["token"]);
     httpClient.DefaultRequestHeaders.Add(
         "X-Secret", builder.Configuration["secret"]);
-    httpClient.DefaultRequestHeaders.Add(
-        "Content-Type", "application/json");
+    httpClient.DefaultRequestHeaders
+      .Accept
+      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
 });
 
 var configuration = builder.Configuration;

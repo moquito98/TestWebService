@@ -18,15 +18,11 @@ namespace TestWebService.Services
         public async Task<string> GetClearAddressAsync(string requestBody)
         {
             using HttpContent requestString = new StringContent($"[\"{requestBody}\"]", Encoding.UTF8, Application.Json);
-            requestString.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             var httpClient = _httpClientFactory.CreateClient("GetAddress");
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             try
             {
-                Console.WriteLine(httpClient.DefaultRequestHeaders.GetValues("Content-Type"));
                 using HttpResponseMessage httpResponse =
-                await httpClient.PostAsync("https://cleaner.dadata.ru/api/v1/clean/address", requestString);
-                //Console.WriteLine(httpResponse);
+                    await httpClient.PostAsync("https://cleaner.dadata.ru/api/v1/clean/address", requestString);
                 return await httpResponse.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
